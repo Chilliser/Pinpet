@@ -1,0 +1,21 @@
+creds.json
+AppData/
+Contacts/
+Desktop/
+Documents/
+Downloads/
+Favorites/
+Links/
+Music/
+OneDrive/
+Pictures/
+Saved Games/
+Searches/
+Videos/
+.Ld9VirtualBox/
+.arduinoIDE/
+.cache/
+.dotnet/
+.librarymanager/
+.matplotlib/
+.nuget/
