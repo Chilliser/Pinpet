@@ -19,3 +19,24 @@ Videos/
 .librarymanager/
 .matplotlib/
 .nuget/
+# ไฟล์ระบบ Windows ที่ไม่ต้องการ
+NTUSER.DAT
+ntuser.dat.LOG1
+ntuser.dat.LOG2
+ntuser.ini
+
+# ไฟล์ OneDrive
+OneDrive*
+
+# ไฟล์การตั้งค่าของ Git และ Terminal
+.gitconfig
+.lesshst
+
+# ไฟล์หรือโฟลเดอร์ที่ไม่ต้องการอื่น ๆ
+*.log
+*.png
+*.html
+project/
+source/
+my_templates/
+static/

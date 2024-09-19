@@ -1,0 +1,3 @@
+git init  # เริ่มต้น repository ใหม่
+git add .  # เพิ่มไฟล์ทั้งหมดไปที่ staging area
+git commit -m "Initial commit"  # ทำการ commit
