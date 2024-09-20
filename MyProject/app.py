@@ -47,7 +47,7 @@ longitude_range = (longitude_center - 0.024, longitude_center + 0.022)
 latitudes = np.arange(latitude_range[0], latitude_range[1], meter_to_degree(grid_size_meters))
 longitudes = np.arange(longitude_range[0], longitude_range[1], meter_to_degree(grid_size_meters))
 
-# กำหนดตำแหน่งเซ็นเซอร์บนเส้นตัดของตาราง
+# กำหนดตำแหน่งเซ็นเซอร์
 sensor_locations = {}
 index = 1
 for lat in latitudes:
@@ -64,7 +64,7 @@ selected_sensors = list(range(21, 23)) + list(range(30, 34)) + list(range(39, 45
 # ลบเซ็นเซอร์ที่ไม่อยู่ในรายการ selected_sensors
 sensor_locations = {key: value for key, value in sensor_locations.items() if int(key[6:]) in selected_sensors}
 
-# สร้างรายการเซ็นเซอร์ที่ต้องการดึงข้อมูลและเซลล์ที่สอดคล้อง
+# สร้างรายการเซ็นเซอร์ที่ต้องการดึงข้อมูล
 sensor_cells = {
     'Sensor21': 'E4', 'Sensor22': 'E5', 'Sensor30': 'E6', 'Sensor31': 'E7',
     'Sensor32': 'E3', 'Sensor33': 'E8', 'Sensor39': 'E9', 'Sensor40': 'E10',
@@ -85,7 +85,7 @@ sensor_cells = {
 # ดึงข้อมูลจากช่วงของเซลล์ทั้งหมดในครั้งเดียว
 cell_range = worksheet.range('E2:E57')
 
-# จัดการข้อมูลให้อยู่ในรูป dictionary โดยจับคู่กับเซ็นเซอร์
+# จัดการข้อมูลให้อยู่ในรูป dictionary
 pm25_values = {}
 for sensor, cell in sensor_cells.items():
     cell_index = int(cell[1:]) - 2
@@ -95,60 +95,44 @@ for sensor, cell in sensor_cells.items():
 sensor_coords = np.array(list(sensor_locations.values()))
 sensor_values = np.array(list(pm25_values.values()))
 
-
-# สร้างกริดที่ละเอียดขึ้นสำหรับการสร้าง contour
+# สร้างกริดที่ละเอียดขึ้น
 grid_lat, grid_lon = np.mgrid[
     latitude_range[0]:latitude_range[1]:100j,
     longitude_range[0]:longitude_range[1]:100j
 ]
 
-# ใช้การสอดแทรก (interpolation) เพื่อสร้างพื้นผิว PM2.5
+# ใช้การสอดแทรกเพื่อสร้างพื้นผิว PM2.5
 grid_z = griddata(sensor_coords, sensor_values, (grid_lat, grid_lon), method='cubic')
 
-# สร้าง contour plot จากพื้นผิว PM2.5
+# สร้าง contour plot
 def generate_contour_plot(grid_lat, grid_lon, grid_z, output_filename):
-    fig, ax = plt.subplots(figsize=(32, 32))
-
-    # ปรับระดับค่า PM2.5 และสีที่สัมพันธ์กัน
+    fig, ax = plt.subplots(figsize=(12, 12))  # ลดขนาด
     levels = [0, 15, 25, 37.5, 75, 150]
     colors = ['#00BFFF', '#00FF00', '#FFFF00', '#FFA500', '#FF0000']
-
-    # กำหนดสีและ normalize ระดับ
     cmap = ListedColormap(colors)
     norm = BoundaryNorm(levels, ncolors=cmap.N, clip=True)
 
-    # สร้าง contour plot
     contour = ax.contourf(grid_lon, grid_lat, grid_z, levels=levels, cmap=cmap, norm=norm, alpha=0.6)
     ax.axis('off')
 
-    # บันทึกภาพเป็นไฟล์
     plt.savefig(output_filename, format='png', bbox_inches='tight', pad_inches=0, transparent=True)
-    plt.close(fig)
+    plt.close(fig)  # ปิดฟิกเจอร์เพื่อช่วยลดการใช้หน่วยความจำ
 
 @app.route('/')
 def index():
-    # บันทึกภาพ contour plot เป็นไฟล์ PNG
     contour_img_filename = 'static/contour_plot.png'
     generate_contour_plot(grid_lat, grid_lon, grid_z, contour_img_filename)
 
-    # สร้างแผนที่โฟลิอุม
     m = folium.Map(location=[latitude_center, longitude_center], zoom_start=14)
-
-    # ใช้ภาพ contour plot ที่บันทึกเป็นไฟล์ PNG
     img_overlay = folium.raster_layers.ImageOverlay(
         image=contour_img_filename,
         bounds=[[latitude_range[0], longitude_range[0]], [latitude_range[1], longitude_range[1]]],
         opacity=0.6,
     )
-
-    # เพิ่มภาพ contour plot ลงในแผนที่
     img_overlay.add_to(m)
 
-    # สร้างแผนที่ HTML
     map_html = m._repr_html_()
-
-    # ส่งคืนแผนที่ HTML เป็นการตอบสนอง
     return map_html
 
-if __name__ == '__main__':
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)

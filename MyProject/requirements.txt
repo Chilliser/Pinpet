@@ -44,4 +44,3 @@ tqdm==4.66.5
 urllib3==2.2.3
 Werkzeug==3.0.4
 xyzservices==2024.9.0
-gunicorn
